@@ -1,0 +1,5 @@
+undetected-chromedriver==3.5.5
+blinker==1.7.0
+selenium-wire==5.1.0
+selenium==4.27.1
+setuptools==75.6.0
