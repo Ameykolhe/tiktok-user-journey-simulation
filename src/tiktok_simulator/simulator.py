@@ -1,24 +1,39 @@
 import json
 import logging
 import time
-from pathlib import Path
 
 import seleniumwire.undetected_chromedriver as uc
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+from .constants import DATA_DIR
 from .exceptions import ScraperException
 from .scraper import TikTokVideoMetadataScraper
+from .user_journey import UserJourney, UserJourneyTopN
+from .utils import Singleton
 
 logger = logging.getLogger(__name__)
 
 
-class TikTokSimulator:
+class TikTokSimulator(metaclass=Singleton):
+    """
+    TikTokSimulator class is a singleton class that simulates user journeys on TikTok.
+    It uses the Selenium WebDriver to interact with the TikTok website and scrape metadata.
+    """
 
     def __init__(self):
+        self.tag = None
+        self.user_journey_data = None
+        self.epoch = None
+        self.metadata = None
         self._driver = None
         self._scraper = TikTokVideoMetadataScraper()
 
+        self._user_journey: UserJourney = UserJourneyTopN()
+
     def init(self):
+        """
+        Initializes the Chrome WebDriver.
+        """
         logger.info("Initializing Chrome WebDriver")
 
         # Chrome desired capabilities
@@ -42,24 +57,23 @@ class TikTokSimulator:
             logger.error(f"Error initializing Chrome WebDriver: {e}")
             exit(1)
 
-    def dump_data(
-            self,
-            tag: str,
-            epoch: int,
-            metadata: list[dict[str, str | list | dict]],
-    ):
-        logger.info(f"Saving metadata for tag: {tag}, epoch: {epoch}")
+    def set_user_journey(self, user_journey: UserJourney):
+        self._user_journey = user_journey
 
-        current_dir = Path(__file__).parent
-        data_dir = current_dir.parent.parent / "data"
-        data_dir.mkdir(parents=True, exist_ok=True)
+    def dump_data(self):
+        """
+        Saves the metadata to a JSON file.
+        """
 
-        file_path = data_dir / f"{tag}_{epoch}.json"
+        logger.info(f"Saving metadata for tag: {self.tag}, epoch: {self.epoch}")
+
+        file_path = DATA_DIR / f"{self.tag}_{self.epoch}_{self._user_journey.name}_{self._user_journey.get_user_interest().name}.json"
 
         data = {
-            "tag": tag,
-            "epoch": epoch,
-            "metadata": metadata
+            "tag": self.tag,
+            "epoch": self.epoch,
+            "metadata": self.metadata,
+            "user_journey_data": self.user_journey_data
         }
 
         with open(file_path, "w") as f:
@@ -67,16 +81,31 @@ class TikTokSimulator:
 
     def run(
             self,
-            tag: str = "foodie"
+            tag: str = "foodie",
+            skip_scraping: bool = False
     ):
+        """
+        Runs the TikTok simulation.
+        :param tag: hashtag to search for
+        :param skip_scraping: whether to skip scraping metadata
+        """
+
         logger.info(f"Running simulation for tag: {tag}")
+        if self._driver is None:
+            self.init()
         try:
-            metadata, epoch = self._scraper.get_metadata(self._driver, tag=tag)
-            self.dump_data(tag, epoch, metadata)
+            self.tag = tag
+            if self.metadata is None or not skip_scraping:
+                self.metadata, self.epoch = self._scraper.get_metadata(self._driver, tag=self.tag)
+            self.user_journey_data = self._user_journey.get_user_journey_data(self.metadata)
+            self.dump_data()
         except ScraperException as e:
             logger.error(f"Error running simulation: {e}")
             self.teardown()
 
     def teardown(self):
+        """
+        Closes the Chrome WebDriver.
+        """
         logger.debug("Tearing down Chrome WebDriver")
         self._driver.quit()
