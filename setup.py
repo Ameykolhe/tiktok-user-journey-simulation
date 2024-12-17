@@ -1,4 +1,5 @@
 import os
+import re
 
 from setuptools import setup, find_packages
 
@@ -8,7 +9,7 @@ def get_version():
     with open(init_path, "r") as f:
         for line in f:
             if line.startswith("__version__"):
-                return line.split("=")[-1][1:-1]
+                return re.search(r'"([^"]*)"', line).group(1)
     raise RuntimeError("Unable to find version string.")
 
 
@@ -20,6 +21,7 @@ setup(
     description="TikTok metadata scraper",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
+    package_dir={"": "src"},
     packages=find_packages(where='src'),
-    python_requires="==3.12"
+    python_requires=">=3.12"
 )
