@@ -140,6 +140,7 @@ The simulator's behavior can be customized by modifying the following files:
    simulator.teardown()
    ```
 
+4. [Sample Output](data/foodie_1734390139_UserJourneyTopN_UserInterestByVideoStatsPlaycount.json)
 ---
 
 ### Debugging
