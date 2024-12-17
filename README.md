@@ -8,6 +8,15 @@ user interest models.
 
 ---
 
+## Docs
+
+---
+
+- [Problem Statement](docs/problem_statement.md)
+- [System Design](docs/system_design.md)
+
+---
+
 ## Repository Structure
 
 ---
