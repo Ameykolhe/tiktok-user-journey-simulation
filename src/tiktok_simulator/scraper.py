@@ -48,14 +48,9 @@ class TikTokVideoMetadataScraper:
         try:
             driver.get(url)
             time.sleep(5)
-        except AssertionError as e:
+        except (AssertionError, NoSuchElementException, TimeoutException) as e:
             logger.error(e)
-            self._scrape(driver, url, retry + 1)
-        except NoSuchElementException as e:
-            logger.error(e)
-            self._scrape(driver, url, retry + 1)
-        except TimeoutException as e:
-            logger.error(e)
+            time.sleep(2 ** (retry + 1))
             self._scrape(driver, url, retry + 1)
 
     def get_metadata(
@@ -91,3 +86,4 @@ class TikTokVideoMetadataScraper:
 
         except Exception as e:
             logger.error(f"Error scraping metadata: {e}")
+            raise ScraperException(f"Error scraping metadata: {e}", url=url)
