@@ -44,7 +44,7 @@ class TikTokSimulator(metaclass=Singleton):
         # Initialize the Chrome WebDriver
         try:
             self._driver = uc.Chrome(
-                headless=False,
+                headless=True,
                 user_data_dir="./chrome-data",
                 desired_capabilities=capabilities,
                 version_main=131,
