@@ -2,7 +2,7 @@ import abc
 import logging
 from abc import ABC
 
-from tiktok_simulator.user_interests import UserInterestDefault, UserInterestBase
+from .user_interests import UserInterestDefault, UserInterestBase
 
 logger = logging.getLogger(__name__)
 
